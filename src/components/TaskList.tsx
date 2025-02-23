@@ -1,36 +1,36 @@
-import { useQuery, useMutation } from "@apollo/client";
-import { GET_TASKS, DELETE_TASK, UPDATE_TASK } from "../service/graphql";
+import { useQuery } from "@apollo/client";
 import {
   Checkbox,
   IconButton,
-  List,
   ListItem,
   ListItemText,
   CircularProgress,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { ITask, ITaskQuery } from "../interfaces/interfaces";
+import TaskService from "../service/TaskService";
+import client from "../service/apollo-client";
+import { GET_TASKS } from "../service/graphql";
+
+const taskService = new TaskService(client);
 
 export default function TaskList() {
-  const { loading, error, data, refetch } = useQuery(GET_TASKS);
-  const [deleteTask] = useMutation(DELETE_TASK);
-  const [updateTask] = useMutation(UPDATE_TASK);
+  const { loading, error, data } = useQuery<ITaskQuery>(GET_TASKS);
 
   if (loading) return <CircularProgress />;
   if (error) return <p>Error loading tasks</p>;
 
   const handleDelete = async (id: string) => {
-    await deleteTask({ variables: { id } });
-    refetch();
+    await taskService.deleteTask(id);
   };
 
   const toggleComplete = async (id: string, completed: boolean) => {
-    await updateTask({ variables: { input: { id, completed: !completed } } });
-    refetch();
+    await taskService.updateTask(id, !completed);
   };
 
   return (
-    <List>
-      {data.tasks.map((task: any) => (
+    <ul className="task-list">
+      {data?.tasks.map((task: ITask) => (
         <ListItem key={task.id}>
           <Checkbox
             checked={task.completed}
@@ -42,6 +42,6 @@ export default function TaskList() {
           </IconButton>
         </ListItem>
       ))}
-    </List>
+    </ul>
   );
 }

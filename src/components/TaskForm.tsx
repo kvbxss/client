@@ -1,25 +1,50 @@
-import { useMutation } from "@apollo/client";
 import { useForm } from "react-hook-form";
-import { CREATE_TASK } from "../service/graphql";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, TextField } from "@mui/material";
+import { ICreateTaskInput } from "../interfaces/interfaces";
+import { createTaskSchema } from "../interfaces/schemas";
+import TaskService from "../service/TaskService";
+import client from "../service/apollo-client";
 
-export default function TaskForm({ refetch }: { refetch: () => void }) {
-  const { register, handleSubmit, reset } = useForm();
-  const [createTask] = useMutation(CREATE_TASK);
+const taskService = new TaskService(client);
 
-  const onSubmit = async (data: any) => {
-    await createTask({ variables: { input: data } });
+export default function TaskForm() {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ICreateTaskInput>({
+    resolver: zodResolver(createTaskSchema),
+  });
+
+  const onSubmit = async (data: ICreateTaskInput) => {
+    await taskService.createTask(data);
     reset();
-    refetch();
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <TextField {...register("title")} label="Task Title" fullWidth required />
-      <TextField {...register("description")} label="Description" fullWidth />
-      <Button type="submit" variant="contained" color="primary">
-        Add Task
-      </Button>
-    </form>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <TextField
+          {...register("title")}
+          label="Task Title"
+          fullWidth
+          required
+          error={!!errors.title}
+          helperText={errors.title?.message}
+        />
+        <TextField
+          {...register("description")}
+          label="Description"
+          fullWidth
+          error={!!errors.description}
+          helperText={errors.description?.message}
+        />
+        <Button type="submit" variant="contained" color="primary">
+          Add Task
+        </Button>
+      </form>
+    </div>
   );
 }
