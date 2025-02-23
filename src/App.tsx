@@ -39,6 +39,20 @@ const theme = createTheme({
         },
       },
     },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          fontFamily: "Lucida Console",
+        },
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          fontSize: "14px",
+        },
+      },
+    },
   },
 });
 
